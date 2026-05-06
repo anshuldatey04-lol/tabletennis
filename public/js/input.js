@@ -76,7 +76,7 @@ window.InputManager = (function () {
     // Roll (y) -> Horizontal movement (X in world)
     // We expect values around -90 to 90
     const tiltX = (data.rotation.y / 20); // Roll for X
-    const tiltY = -(data.rotation.x / 20); // Pitch for Y
+    const tiltY = (data.rotation.x / 20); // Pitch for Y
 
     phoneData[s].targetX = Math.max(-2, Math.min(2, tiltX));
     phoneData[s].targetY = Math.max(-1, Math.min(1, tiltY));
@@ -106,8 +106,8 @@ window.InputManager = (function () {
     if (phoneConnected[side]) {
       const data = phoneData[side];
       // Smooth interpolation for phone data
-      smoothX += (data.targetX - smoothX) * 0.15;
-      smoothY += (data.targetY - smoothY) * 0.15;
+      smoothX += (data.targetX - smoothX) * 0.35;
+      smoothY += (data.targetY - smoothY) * 0.35;
 
       worldX = smoothX * C.tableHalfWid * 1.2;
       worldY = Math.max(C.tableHeight + 0.05, C.tableHeight + 0.3 + smoothY * 0.4);
