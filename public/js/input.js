@@ -75,10 +75,10 @@ window.InputManager = (function () {
     // Pitch (x) -> Vertical movement (Y in world)
     // Roll (y) -> Horizontal movement (X in world)
     // We expect values around -90 to 90
-    const tiltX = (data.rotation.y / 45); // Roll for X
-    const tiltY = -(data.rotation.x / 45); // Pitch for Y
+    const tiltX = (data.rotation.y / 20); // Roll for X
+    const tiltY = -(data.rotation.x / 20); // Pitch for Y
 
-    phoneData[s].targetX = Math.max(-1.5, Math.min(1.5, tiltX));
+    phoneData[s].targetX = Math.max(-2, Math.min(2, tiltX));
     phoneData[s].targetY = Math.max(-1, Math.min(1, tiltY));
     phoneData[s].rotation = data.rotation;
     phoneData[s].acceleration = data.acceleration;
@@ -110,7 +110,7 @@ window.InputManager = (function () {
       smoothY += (data.targetY - smoothY) * 0.15;
 
       worldX = smoothX * C.tableHalfWid * 1.2;
-      worldY = C.tableHeight + 0.3 + smoothY * 0.4;
+      worldY = Math.max(C.tableHeight + 0.05, C.tableHeight + 0.3 + smoothY * 0.4);
       rotation = data.rotation;
     } else {
       // Smooth interpolation for mouse
@@ -118,7 +118,7 @@ window.InputManager = (function () {
       smoothY += (mouseY - smoothY) * 0.22;
 
       worldX = smoothX * C.tableHalfWid;
-      worldY = C.tableHeight + 0.3 + smoothY * 0.5;
+      worldY = Math.max(C.tableHeight + 0.05, C.tableHeight + 0.3 + smoothY * 0.5);
       rotation = null;
     }
 
@@ -131,11 +131,11 @@ window.InputManager = (function () {
   function getLocalInputPos(localSide) {
     if (localSide === 'red') {
       const x = ((keys['KeyA'] ? -1 : 0) + (keys['KeyD'] ? 1 : 0)) * C.tableHalfWid * 0.9;
-      const y = C.tableHeight + 0.2 + ((keys['KeyW'] ? 1 : 0) + (keys['KeyS'] ? -1 : 0)) * 0.3;
+      const y = Math.max(C.tableHeight + 0.05, C.tableHeight + 0.2 + ((keys['KeyW'] ? 1 : 0) + (keys['KeyS'] ? -1 : 0)) * 0.3);
       return { x, y };
     } else {
       const x = ((keys['ArrowLeft'] ? -1 : 0) + (keys['ArrowRight'] ? 1 : 0)) * C.tableHalfWid * 0.9;
-      const y = C.tableHeight + 0.2 + ((keys['ArrowUp'] ? 1 : 0) + (keys['ArrowDown'] ? -1 : 0)) * 0.3;
+      const y = Math.max(C.tableHeight + 0.05, C.tableHeight + 0.2 + ((keys['ArrowUp'] ? 1 : 0) + (keys['ArrowDown'] ? -1 : 0)) * 0.3);
       return { x, y };
     }
   }
