@@ -116,8 +116,9 @@ window.NetworkManager = (function () {
     });
 
     socket.on('motionData', (data) => {
-      if (callbacks.onMotionData) callbacks.onMotionData(data);
-    });
+  InputManager.onMotionData(data);
+  if (callbacks.onMotionData) callbacks.onMotionData(data);
+});
 
     // ── Bot (single player) ───────────────────────────────────────────────
     socket.on('botHit', (data) => {
