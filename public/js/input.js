@@ -146,7 +146,7 @@ window.InputManager = (function () {
   function isPhoneConnected(s) { return phoneConnected[s]; }
 
   return {
-    init, update, onPhoneInput, setPhoneConnected,
+    init, update, onPhoneInput, onMotionData, setPhoneConnected,
     setSensitivity, setSide, getMouseX, getLocalInputPos
   };
 })();
