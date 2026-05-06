@@ -160,7 +160,7 @@
     _checkInviteLink();
 
     // Auto-create session for connection code
-    NetworkManager.createSession('single');
+    
   }
 
   // ── Home button bindings ────────────────────────────────────────────────────
@@ -274,7 +274,7 @@
     UIManager.setServeIndicator('red');
     UIManager.showScreen('screen-game');
 
-    NetworkManager.createSession('single');
+    
     _runCountdown(() => {
       PhysicsEngine.serve();
       currentState = State.PLAYING;
