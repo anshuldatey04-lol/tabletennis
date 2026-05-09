@@ -72,11 +72,11 @@ window.InputManager = (function () {
     phoneConnected[s] = true;
 
     // Map tilt to target X/Y
-    // Pitch (x) -> Vertical movement (Y in world)
-    // Roll (y) -> Horizontal movement (X in world)
+    // Pitch (x) -> Horizontal movement (X in world)
+    // Roll (y) -> Vertical movement (Y in world)
     // We expect values around -90 to 90
-    const tiltX = (data.rotation.y / 20); // Roll for X
-    const tiltY = (data.rotation.x / 20); // Pitch for Y
+    const tiltX = (data.rotation.x / 20);
+    const tiltY = (data.rotation.y / 20);
 
     phoneData[s].targetX = Math.max(-2, Math.min(2, tiltX));
     phoneData[s].targetY = Math.max(-1, Math.min(1, tiltY));
