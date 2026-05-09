@@ -29,13 +29,11 @@ window.NetworkManager = (function () {
 
     socket.on('connect', () => {
       connected = true;
-      _updateConnBadge(true);
       if (callbacks.onConnect) callbacks.onConnect(socket.id);
     });
 
     socket.on('disconnect', () => {
       connected = false;
-      _updateConnBadge(false);
       if (callbacks.onDisconnect) callbacks.onDisconnect();
     });
 
@@ -175,13 +173,6 @@ window.NetworkManager = (function () {
   function _updateSessionCode(code) {
     const el = document.getElementById('session-code');
     if (el) el.textContent = code;
-  }
-
-  function _updateConnBadge(on) {
-    const dot   = document.getElementById('conn-dot');
-    const label = document.getElementById('conn-label');
-    if (dot)   dot.classList.toggle('connected', on);
-    if (label) label.textContent = on ? 'Connected' : 'Disconnected';
   }
 
   function getSessionCode() { return sessionCode; }

@@ -64,7 +64,7 @@ window.PhysicsEngine = (function () {
     const prevY  = rackets[side].y;
     rackets[side].x  = Math.max(-C.tableHalfWid + 0.1, Math.min(C.tableHalfWid - 0.1, x));
     if (y !== undefined) {
-      rackets[side].y = Math.max(C.tableHeight - 0.1, Math.min(C.tableHeight + 0.8, y));
+      rackets[side].y = Math.max(C.tableHeight + 0.05, Math.min(C.tableHeight + 0.8, y));
     }
     if (rotation !== undefined) {
       rackets[side].rotation = rotation;
@@ -147,8 +147,14 @@ window.PhysicsEngine = (function () {
         
         const spin = rk.vx * 0.3;
         b.vz = -b.vz * 0.92;
-        b.vy = Math.abs(b.vy) * 0.4 + 2.0;
-        b.vx = b.vx * 0.65 + spin;
+        
+        // Constrain vertical velocity to keep ball in frame (especially for opponent)
+        let vyBoost = (side === 'blue') ? 1.4 : 1.8;
+        b.vy = Math.abs(b.vy) * 0.4 + vyBoost;
+        
+        // Constrain horizontal velocity to keep ball from going too wide
+        let vxMax = (side === 'blue') ? 0.9 : 1.5;
+        b.vx = Math.max(-vxMax, Math.min(vxMax, b.vx * 0.65 + spin));
         
         // Correct position to prevent double-hits or sticking
         b.z  = rk.z + (side === 'red' ? -0.1 : 0.1);
@@ -160,7 +166,7 @@ window.PhysicsEngine = (function () {
     }
 
     // ── Out of bounds ──
-    if (b.y < C.tableHeight - 0.5 || Math.abs(b.x) > C.tableHalfWid * 2.5 || Math.abs(b.z) > C.tableHalfLen * 1.8) {
+    if (b.y < C.tableHeight - 0.5 || Math.abs(b.x) > C.tableHalfWid * 2.0 || Math.abs(b.z) > C.tableHalfLen * 1.6) {
       // Who missed? Ball going toward red zone means blue served & red missed, etc.
       const miss   = b.vz > 0 ? 'red' : 'blue';
       const scorer = miss === 'red' ? 'blue' : 'red';

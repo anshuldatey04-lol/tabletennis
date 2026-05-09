@@ -82,16 +82,16 @@ window.Renderer = (function () {
   }
 
   function _buildCamera() {
-    camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 50);
-    // First-person: positioned at player (red) end, looking toward blue
-    camera.position.set(0, C.tableHeight + 0.35, C.tableHalfLen + 0.45);
-    camera.lookAt(0, C.tableHeight + 0.08, 0);
+    camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.01, 50);
+    // Positioned further back and slightly higher for better overview
+    camera.position.set(0, C.tableHeight + 0.6, C.tableHalfLen + 1.2);
+    camera.lookAt(0, C.tableHeight + 0.1, 0);
 
     // Split-screen cameras
     cameras.left  = camera.clone();
     cameras.right = camera.clone();
-    cameras.right.position.set(0, C.tableHeight + 0.35, -(C.tableHalfLen + 0.45));
-    cameras.right.lookAt(0, C.tableHeight + 0.08, 0);
+    cameras.right.position.set(0, C.tableHeight + 0.6, -(C.tableHalfLen + 1.2));
+    cameras.right.lookAt(0, C.tableHeight + 0.1, 0);
   }
 
   function _buildLights() {
@@ -462,7 +462,7 @@ window.Renderer = (function () {
 
     // Subtle head bob
     const t = Date.now() * 0.001;
-    camera.position.y = C.tableHeight + 0.35 + Math.sin(t * 1.2) * 0.003;
+    camera.position.y = C.tableHeight + 0.6 + Math.sin(t * 1.2) * 0.003;
   }
 
   function triggerShake(intensity = 0.015) {
@@ -488,8 +488,8 @@ window.Renderer = (function () {
       // Right (blue)
       renderer.setViewport(w / 2, 0, w / 2, h);
       renderer.setScissor(w / 2, 0, w / 2, h);
-      cameras.right.position.set(0, C.tableHeight + 0.35, -(C.tableHalfLen + 0.45));
-      cameras.right.lookAt(0, C.tableHeight + 0.08, 0);
+      cameras.right.position.set(0, C.tableHeight + 0.6, -(C.tableHalfLen + 1.2));
+      cameras.right.lookAt(0, C.tableHeight + 0.1, 0);
       renderer.render(scene, cameras.right);
       renderer.setScissorTest(false);
     }

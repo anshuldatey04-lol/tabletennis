@@ -112,8 +112,15 @@ function stepPhysics(gs) {
         b.y > PHYSICS.tableHeight && b.y < PHYSICS.tableHeight + 0.5) {
       const spin = rk.vx * 0.3;
       b.vz = -b.vz * 0.9;
-      b.vy = Math.abs(b.vy) * 0.6 + 2.0;
-      b.vx = b.vx * 0.7 + spin;
+      
+      // Constrain vertical velocity to keep ball in frame
+      let vyBoost = (side === 'blue') ? 1.4 : 1.8;
+      b.vy = Math.abs(b.vy) * 0.6 + vyBoost;
+      
+      // Constrain horizontal velocity to keep ball from going too wide
+      let vxMax = (side === 'blue') ? 0.9 : 1.5;
+      b.vx = Math.max(-vxMax, Math.min(vxMax, b.vx * 0.7 + spin));
+
       b.z  = rz + (side === 'red' ? -0.08 : 0.08);
       return { event: 'racketHit', side };
     }
@@ -121,8 +128,8 @@ function stepPhysics(gs) {
 
   // Out of bounds checks
   if (b.y < PHYSICS.tableHeight - 0.3) return { event: 'ballLost', scorer: b.vz > 0 ? 'blue' : 'red' };
-  if (Math.abs(b.x) > PHYSICS.tableHalfWid * 2) return { event: 'ballLost', scorer: b.vz > 0 ? 'blue' : 'red' };
-  if (Math.abs(b.z) > PHYSICS.tableHalfLen * 1.5) {
+  if (Math.abs(b.x) > PHYSICS.tableHalfWid * 1.8) return { event: 'ballLost', scorer: b.vz > 0 ? 'blue' : 'red' };
+  if (Math.abs(b.z) > PHYSICS.tableHalfLen * 1.4) {
     // Who missed
     const miss = b.vz > 0 ? 'red' : 'blue';
     return { event: 'ballLost', scorer: miss === 'red' ? 'blue' : 'red' };
@@ -249,7 +256,9 @@ io.on('connection', (socket) => {
     const prev   = rk.x;
     rk.x         = Math.max(-PHYSICS.tableHalfWid + 0.1, Math.min(PHYSICS.tableHalfWid - 0.1, x));
     rk.vx        = rk.x - prev;
-    if (y !== undefined) rk.y = y;
+    if (y !== undefined) {
+      rk.y = Math.max(PHYSICS.tableHeight + 0.05, Math.min(PHYSICS.tableHeight + 0.8, y));
+    }
     if (rotation !== undefined) rk.rotation = rotation;
     // Broadcast to room (not back to sender)
     socket.to(`game:${gameId}`).emit('racketSync', { side: s, x: rk.x, y, rotation });

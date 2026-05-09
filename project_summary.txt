@@ -1,0 +1,35 @@
+# Table Tennis Online - Project Summary
+
+This project is a real-time 3D browser-based table tennis game featuring single-player, local multiplayer, and online multiplayer modes.
+
+## What has been done in this project:
+- **Core Game Engine:**
+    - Integrated a state machine to handle game phases (Home, Lobby, Countdown, Playing, Game Over).
+    - Implemented a 3D rendering system using Three.js with custom materials, lighting, and camera effects (like camera shake).
+    - Developed a custom physics engine for ball movement, collision detection (table, net, rackets), and bounce restitution.
+- **Multiplayer & Networking:**
+    - Built a Node.js/Express server with Socket.io for real-time communication.
+    - Implemented server-authoritative physics for multiplayer matches to ensure synchronization between players.
+    - Created a session management system using 6-digit codes and shareable URLs for joining games.
+- **Game Modes:**
+    - **Single Player:** Against a configurable Bot AI.
+    - **Multiplayer:** Online 1v1 with real-time syncing.
+    - **Local Multiplayer:** Split-screen mode for two players on the same device.
+- **UI & UX:**
+    - Designed a responsive HTML/CSS overlay for menus, scoring, and lobby management.
+    - Integrated sound effects for hits, bounces, and points.
+    - Added visual feedback like point flashes and "READY-1-2-3" countdowns.
+
+## What was made separately (Modular Subsystems):
+The project is built using a modular architecture where each major system is decoupled:
+1. **Smartphone Controller (`controller-smartphone.js`):** A standalone module that allows players to use their smartphone as a physical racket using the Device Motion API.
+2. **Bot AI (`bot.js`):** A separate AI module with adjustable difficulty levels that predicts ball trajectory and reacts accordingly.
+3. **Physics Engine (`physics.js` / `server/index.js`):** Decoupled physics logic that can run both on the client (for single/local) and on the server (for multiplayer).
+4. **Renderer (`renderer.js`):** A dedicated Three.js wrapper that handles all 3D scene management, independent of game logic.
+5. **Input Manager (`input.js`):** A unified module for handling Mouse, Keyboard, and Motion data inputs.
+6. **Audio Manager (`audio.js`):** A centralized system for handling spatial and UI sound effects.
+
+## Tech Stack:
+- **Frontend:** HTML5, Vanilla CSS, Three.js, Socket.io-client.
+- **Backend:** Node.js, Express, Socket.io, UUID.
+- **Dev Tools:** Vite, Nodemon.

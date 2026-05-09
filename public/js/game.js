@@ -71,7 +71,13 @@
     });
 
     NetworkManager.init({
-      onConnect:    (id) => { console.log('[Net] Connected', id); },
+      onConnect:    (id) => {
+        console.log('[Net] Connected', id);
+        // Auto-create session on startup to get a connection code for phone
+        if (!NetworkManager.checkInviteUrl()) {
+          NetworkManager.createSession('single');
+        }
+      },
       onDisconnect: ()   => { console.log('[Net] Disconnected'); },
 
       onSessionCreated: (data) => {
@@ -160,7 +166,9 @@
     _checkInviteLink();
 
     // Auto-create session for connection code
-    
+    if (!NetworkManager.checkInviteUrl()) {
+      NetworkManager.createSession('single');
+    }
   }
 
   // ── Home button bindings ────────────────────────────────────────────────────
@@ -391,7 +399,7 @@
     PhysicsEngine.reset();
     UIManager.showScreen('screen-home');
     // Re-create connection session for the code
-    setTimeout(() => NetworkManager.createSession('single'), 500);
+    NetworkManager.createSession('single');
   }
 
   // ── Main Game Loop ────────────────────────────────────────────────────────────
