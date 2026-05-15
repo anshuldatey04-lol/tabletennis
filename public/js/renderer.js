@@ -18,6 +18,8 @@ window.Renderer = (function () {
 
   const C = PhysicsEngine.getConstants();
 
+  let cameraSmoothTarget = new THREE.Vector3();
+
   // ── Materials ────────────────────────────────────────────────────────────
   const MAT = {};
 
@@ -33,7 +35,7 @@ window.Renderer = (function () {
     });
     MAT.ball = new THREE.MeshStandardMaterial({
       color: 0xffffff, roughness: 0.3, metalness: 0.05,
-      emissive: 0xffffff, emissiveIntensity: 0.15
+      emissive: 0xffffff, emissiveIntensity: 0.25
     });
     MAT.floor = new THREE.MeshStandardMaterial({
       color: 0x6b4423, roughness: 0.9
@@ -71,6 +73,7 @@ window.Renderer = (function () {
     _buildTable();
     _buildNet();
     _buildBall();
+    _buildTrailParticles();
     _buildRackets();
     _buildPlayers();
     _buildEnvironment();
@@ -82,16 +85,17 @@ window.Renderer = (function () {
   }
 
   function _buildCamera() {
-    camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.01, 50);
-    // Positioned further back and slightly higher for better overview
-    camera.position.set(0, C.tableHeight + 0.6, C.tableHalfLen + 1.2);
-    camera.lookAt(0, C.tableHeight + 0.1, 0);
+    camera = new THREE.PerspectiveCamera(74, window.innerWidth / window.innerHeight, 0.01, 50);
+    camera.position.set(0, C.tableHeight + 0.85, C.tableHalfLen + 1.9);
+    camera.lookAt(0, C.tableHeight + 0.1, -0.3);
 
     // Split-screen cameras
     cameras.left  = camera.clone();
     cameras.right = camera.clone();
-    cameras.right.position.set(0, C.tableHeight + 0.6, -(C.tableHalfLen + 1.2));
-    cameras.right.lookAt(0, C.tableHeight + 0.1, 0);
+    cameras.right.position.set(0, C.tableHeight + 0.85, -(C.tableHalfLen + 1.9));
+    cameras.right.lookAt(0, C.tableHeight + 0.1, 0.3);
+
+    cameraSmoothTarget.copy(camera.position);
   }
 
   function _buildLights() {
@@ -107,7 +111,7 @@ window.Renderer = (function () {
       spot.position.set(x, 4.5, z);
       spot.target.position.set(x, 0, z);
       spot.castShadow = true;
-      spot.shadow.mapSize.setScalar(1024);
+      spot.shadow.mapSize.setScalar(2048);
       scene.add(spot, spot.target);
 
       // Visible bulb
@@ -237,7 +241,7 @@ window.Renderer = (function () {
     scene.add(ballMesh);
 
     // Ball glow
-    const glow = new THREE.PointLight(0xffffff, 0.3, 0.4);
+    const glow = new THREE.PointLight(0xffffff, 0.6, 0.6);
     ballMesh.add(glow);
   }
 
@@ -308,8 +312,8 @@ window.Renderer = (function () {
       return group;
     }
 
-    playerModels.red  = makePlayer(0xcc0000);
-    playerModels.blue = makePlayer(0x0055cc);
+    playerModels.red  = null;
+    playerModels.blue = null;
   }
 
   function _box(mat, w, h, d, x, y, z) {
@@ -409,6 +413,16 @@ window.Renderer = (function () {
       ballMesh.position.set(ball.x, ball.y, ball.z);
       ballMesh.rotation.x += ball.vz * dt * 4;
       ballMesh.rotation.z += ball.vx * dt * 4;
+      _spawnTrail(ball.x, ball.y, ball.z);
+    }
+
+    // Trail particle fade
+    for (const p of trailParticles) {
+      if (p.visible) {
+        p.userData.life -= dt * 12;
+        p.material.opacity = Math.max(0, p.userData.life * 0.7);
+        if (p.userData.life <= 0) p.visible = false;
+      }
     }
 
     // Rackets
@@ -452,17 +466,28 @@ window.Renderer = (function () {
       model.rotation.y = side === 'red' ? Math.PI : 0;
     }
 
-    // Camera shake
-    if (cameraShakeAmt > 0) {
-      camera.position.x += (Math.random() - 0.5) * cameraShakeAmt;
-      camera.position.y += (Math.random() - 0.5) * cameraShakeAmt * 0.5;
-      cameraShakeAmt    *= 0.85;
-      if (cameraShakeAmt < 0.0005) cameraShakeAmt = 0;
+    // Dynamic camera follow (non-split mode follows local player)
+    if (!splitMode) {
+      const side = localSide || 'red';
+      const rk  = rackets[side];
+      if (rk) {
+        const zSign  = side === 'blue' ? -1 : 1;
+        const target = new THREE.Vector3(
+          rk.x + 0.18,
+          (rk.y || C.tableHeight + 0.06) + 0.12,
+          zSign * (C.tableHalfLen - 0.05) - 0.08
+        );
+        camera.position.lerp(target, 0.08);
+        camera.lookAt(
+          rk.x * 0.3,
+          C.tableHeight - 0.05,
+          zSign * -0.5
+        );
+      }
     }
 
-    // Subtle head bob
-    const t = Date.now() * 0.001;
-    camera.position.y = C.tableHeight + 0.6 + Math.sin(t * 1.2) * 0.003;
+    // Update smooth target from resolved camera position
+    cameraSmoothTarget.copy(camera.position);
   }
 
   function triggerShake(intensity = 0.015) {
@@ -480,16 +505,34 @@ window.Renderer = (function () {
     } else {
       const w = renderer.domElement.width;
       const h = renderer.domElement.height;
-      // Left (red)
+      // Left (red) — dynamic follow
       renderer.setScissorTest(true);
       renderer.setViewport(0, 0, w / 2, h);
       renderer.setScissor(0, 0, w / 2, h);
+      const redRacket = physState && physState.rackets ? physState.rackets.red : null;
+      if (redRacket) {
+        const target = new THREE.Vector3(
+          redRacket.x + 0.18,
+          (redRacket.y || C.tableHeight + 0.06) + 0.12,
+          (C.tableHalfLen - 0.05) - 0.08
+        );
+        cameras.left.position.lerp(target, 0.08);
+        cameras.left.lookAt(redRacket.x * 0.3, C.tableHeight - 0.05, -0.5);
+      }
       renderer.render(scene, cameras.left);
-      // Right (blue)
+      // Right (blue) — dynamic follow
       renderer.setViewport(w / 2, 0, w / 2, h);
       renderer.setScissor(w / 2, 0, w / 2, h);
-      cameras.right.position.set(0, C.tableHeight + 0.6, -(C.tableHalfLen + 1.2));
-      cameras.right.lookAt(0, C.tableHeight + 0.1, 0);
+      const blueRacket = physState && physState.rackets ? physState.rackets.blue : null;
+      if (blueRacket) {
+        const target = new THREE.Vector3(
+          blueRacket.x - 0.18,
+          (blueRacket.y || C.tableHeight + 0.06) + 0.12,
+          -(C.tableHalfLen - 0.05) + 0.08
+        );
+        cameras.right.position.lerp(target, 0.08);
+        cameras.right.lookAt(blueRacket.x * 0.3, C.tableHeight - 0.05, 0.5);
+      }
       renderer.render(scene, cameras.right);
       renderer.setScissorTest(false);
     }

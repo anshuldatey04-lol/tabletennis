@@ -87,8 +87,9 @@ function stepPhysics(gs) {
     if (b.vy < 0) {
       b.vy = -b.vy * PHYSICS.bounceRestitution;
     }
-    b.vx *= 0.98;
-    b.vz *= 0.98;
+    // Removed friction to keep ball fast
+    // b.vx *= 0.98;
+    // b.vz *= 0.98;
     return { event: 'tableBounce' };
   }
 
@@ -111,15 +112,18 @@ function stepPhysics(gs) {
         Math.abs(b.x - rk.x) < PHYSICS.racketWidth / 2 &&
         b.y > PHYSICS.tableHeight && b.y < PHYSICS.tableHeight + 0.5) {
       const spin = rk.vx * 0.3;
-      b.vz = -b.vz * 0.9;
+      // Maintain longitudinal speed and ensure it doesn't drop below serving speed
+      b.vz = -b.vz * 1.0;
+      const minVZ = 3.5;
+      if (Math.abs(b.vz) < minVZ) b.vz = Math.sign(b.vz) * minVZ;
       
       // Constrain vertical velocity to keep ball in frame
       let vyBoost = (side === 'blue') ? 1.4 : 1.8;
       b.vy = Math.abs(b.vy) * 0.6 + vyBoost;
       
       // Constrain horizontal velocity to keep ball from going too wide
-      let vxMax = (side === 'blue') ? 0.9 : 1.5;
-      b.vx = Math.max(-vxMax, Math.min(vxMax, b.vx * 0.7 + spin));
+      let vxMax = (side === 'blue') ? 1.2 : 2.0;
+      b.vx = Math.max(-vxMax, Math.min(vxMax, b.vx * 0.8 + spin));
 
       b.z  = rz + (side === 'red' ? -0.08 : 0.08);
       return { event: 'racketHit', side };

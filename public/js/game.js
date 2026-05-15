@@ -34,7 +34,6 @@
       onTableBounce: () => AudioManager.playBounce(),
       onRacketHit:   (e) => {
         AudioManager.playHit();
-        Renderer.triggerShake(0.012);
       },
       onPoint: (data) => {
         const isPlayerPoint = data.scorer === playerSide;
@@ -146,7 +145,8 @@
         // Bot hit — apply to physics
         const ps = PhysicsEngine.getState();
         const b  = ps.ball;
-        b.vz  =  Math.abs(b.vz) * 0.85;
+        // Maintain speed
+        b.vz  =  Math.max(3.5, Math.abs(b.vz) * 1.0);
         b.vy  =  1.6 + Math.random() * 0.5;
         b.vx  += data.spin || 0;
         PhysicsEngine.setState({ ball: b });

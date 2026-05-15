@@ -146,15 +146,18 @@ window.PhysicsEngine = (function () {
           b.y > C.tableHeight - 0.2 && b.y < C.tableHeight + 0.6) {
         
         const spin = rk.vx * 0.3;
-        b.vz = -b.vz * 0.92;
+        // Maintain longitudinal speed and ensure it doesn't drop below serving speed
+        b.vz = -b.vz * 1.0;
+        const minVZ = 3.8;
+        if (Math.abs(b.vz) < minVZ) b.vz = Math.sign(b.vz) * minVZ;
         
         // Constrain vertical velocity to keep ball in frame (especially for opponent)
         let vyBoost = (side === 'blue') ? 1.4 : 1.8;
         b.vy = Math.abs(b.vy) * 0.4 + vyBoost;
         
         // Constrain horizontal velocity to keep ball from going too wide
-        let vxMax = (side === 'blue') ? 0.9 : 1.5;
-        b.vx = Math.max(-vxMax, Math.min(vxMax, b.vx * 0.65 + spin));
+        let vxMax = (side === 'blue') ? 1.2 : 2.0;
+        b.vx = Math.max(-vxMax, Math.min(vxMax, b.vx * 0.8 + spin));
         
         // Correct position to prevent double-hits or sticking
         b.z  = rk.z + (side === 'red' ? -0.1 : 0.1);

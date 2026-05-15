@@ -75,8 +75,8 @@ window.InputManager = (function () {
     // Pitch (x) -> Vertical movement (Y in world)
     // Roll (y) -> Horizontal movement (X in world)
     // We expect values around -90 to 90
-    const tiltX = (data.rotation.y / 20); // Roll for X
-    const tiltY = (data.rotation.x / 20); // Pitch for Y
+    const tiltX = (data.rotation.x / 20); // Pitch for X
+    const tiltY = (data.rotation.y / 20); // Roll for Y
 
     phoneData[s].targetX = Math.max(-2, Math.min(2, tiltX));
     phoneData[s].targetY = Math.max(-1, Math.min(1, tiltY));
